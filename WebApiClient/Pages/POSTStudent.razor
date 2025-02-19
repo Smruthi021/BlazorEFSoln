@@ -1,0 +1,51 @@
+﻿@page "/Post"
+@using System.ComponentModel.DataAnnotations
+@using Syncfusion.Blazor.Inputs
+@inject HttpClient _httpClient
+
+<h3>Add New Student</h3>
+
+<EditForm Model="stu" OnValidSubmit="AddStudent">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="name">Name</label>
+                <SfTextBox Id="name" Placeholder="Enter Name" @bind-Value="stu.Name" CssClass="form-control" />
+                <ValidationMessage For="@(() => stu.Name)" CssClass="text-danger" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="age">Age</label>
+                <SfNumericTextBox Id="age" TValue="int" Placeholder="Enter Age" @bind-Value="stu.Age" CssClass="form-control" />
+                <ValidationMessage For="@(() => stu.Age)" CssClass="text-danger" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <SfButton  CssClass="btn btn-primary">Add Student</SfButton>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+<p>@message</p>
+
+@code {
+    private StudTable stu = new();
+    private string message = "";
+
+    private async Task AddStudent()
+    {
+        var response = await _httpClient.PostAsJsonAsync("https://localhost:7060/api/Student", stu);
+        if (response.IsSuccessStatusCode)
+        {
+            message = "Student added successfully!";
+            stu = new StudTable(); // Reset the form inputs
+        }
+       
+    }
+}

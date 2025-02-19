@@ -1,0 +1,73 @@
+﻿@page "/Post/{age:int}"
+@inject HttpClient _httpClient
+@inject NavigationManager Navigation
+
+<h3>Edit Student</h3>
+
+<EditForm Model="stu" OnValidSubmit="UpdateStudent">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Name</label>
+                <InputText @bind-Value="stu.Name" class="form-control" />
+                <ValidationMessage For="@(() => stu.Name)" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Age</label>
+                <InputNumber @bind-Value="stu.Age" class="form-control" disabled />
+                <ValidationMessage For="@(() => stu.Age)" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <button class="btn btn-primary">Update</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+<p>@message</p>
+
+@code {
+    [Parameter] public int Age { get; set; }
+    private StudTable stu = new();
+    private string message = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Age > 0)
+        {
+            // Attempt to get the student details
+            var result = await _httpClient.GetFromJsonAsync<StudTable>($"https://localhost:7060/api/Student/{Age}");
+
+            // Check if the result is null
+            if (result != null)
+            {
+                stu = result; // Assign only if it's not null
+            }
+            else
+            {
+                // Handle the case where the student was not found
+                stu = new StudTable(); // or initialize as needed
+                // Optionally set a message or log
+                Console.WriteLine($"No student found with Age: {Age}");
+            }
+        }
+    }
+
+
+    private async Task UpdateStudent()
+    {
+        var response = await _httpClient.PutAsJsonAsync($"https://localhost:7060/api/Student/{stu.Age}", stu);
+        if (response.IsSuccessStatusCode)
+        {
+            message = "Student updated successfully!";
+            Navigation.NavigateTo("/Get");
+        }
+    }
+}

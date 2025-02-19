@@ -1,0 +1,180 @@
+﻿@page "/Get"
+@using Syncfusion.Blazor.Popups
+@inject HttpClient _httpClient
+@inject NavigationManager Navigation
+
+@* <h3>GETStudent</h3>
+
+<SfGrid DataSource="students" AllowPaging="true">
+    <GridColumns>
+        <GridColumn Field="Name" HeaderText="Name" Width="200" />
+        <GridColumn Field="Age" HeaderText="Age" Width="150" />
+        <GridColumn HeaderText="Actions" Width="150">
+            <Template>
+                <div>
+                    <button @onclick="() => UpdateStudent(context)">Update</button>
+                    <button @onclick="() => DeleteStudent(context.Age)">Delete</button>
+                </div>
+            </Template>
+        </GridColumn>
+    </GridColumns>
+</SfGrid>
+
+<SfDialog Width="400px" @bind-Visible="isDialogVisible">
+    <DialogTemplates>
+        <Content>
+            <h3>Update Student</h3>
+        </Content>
+    </DialogTemplates>
+</SfDialog>
+
+@code {
+    private List<StudTable> students = new(); // Avoid null reference
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            students = await _httpClient.GetFromJsonAsync<List<StudTable>>("https://localhost:7060/api/Student")
+                       ?? new List<StudTable>(); // Ensure it's not null
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"HTTP Error: {ex.Message}");
+        }
+
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unexpected Error: {ex.Message}");
+        }
+    }
+}
+ *@
+
+  
+
+<h3>GET Student</h3>
+
+<SfGrid DataSource="students" AllowPaging="true">
+    <GridColumns>
+        <GridColumn Field="Name" HeaderText="Name" Width="200" />
+        <GridColumn Field="Age" HeaderText="Age" Width="150" />
+        <GridColumn HeaderText="Actions" Width="150">
+            <Template>
+                @{
+                    var student = (StudTable)@context; 
+                }
+                <div>
+                    <button @onclick="() => OpenUpdateDialog(student)">Update</button>
+                    <button @onclick="() => DeleteStudent(student.Age)">Delete</button>
+                    <button class="btn btn-primary" @onclick="() => ViewStudent(student.Age)">View</button>
+                </div>
+            </Template>
+        </GridColumn>
+    </GridColumns>
+</SfGrid>
+
+<SfDialog Width="400px" @bind-Visible="isDialogVisible">
+    <DialogTemplates>
+        <Content>
+            <h3>Update Student</h3>
+            <div>
+                <label>Name:</label>
+                <InputText @bind-Value="selectedStudent.Name" />
+            </div>
+            <div>
+                <label>Age:</label>
+                <InputNumber @bind-Value="selectedStudent.Age" disabled />
+            </div>
+            <div>
+                <button @onclick="UpdateStudent">Save</button>
+                <button @onclick="CloseDialog">Cancel</button>
+            </div>
+        </Content>
+    </DialogTemplates>
+</SfDialog>
+
+@code {
+    private List<StudTable> students = new(); 
+    private bool isDialogVisible = false; 
+    private StudTable selectedStudent = new(); 
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStudents();
+    }
+
+    private async Task LoadStudents()
+    {
+        try
+        {
+            students = await _httpClient.GetFromJsonAsync<List<StudTable>>("https://localhost:7060/api/Student") 
+                       ?? new List<StudTable>();
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"HTTP Error: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unexpected Error: {ex.Message}");
+        }
+    }
+
+    private void OpenUpdateDialog(StudTable student)
+    {
+        selectedStudent = student; 
+        isDialogVisible = true; 
+    }
+
+    private async Task UpdateStudent()
+    {
+        try
+        {
+            var response = await _httpClient.PutAsJsonAsync($"https://localhost:7060/api/Student/{selectedStudent.Age}", selectedStudent);
+            if (response.IsSuccessStatusCode)
+            {
+                
+                await LoadStudents();
+                CloseDialog(); 
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"HTTP Error: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unexpected Error: {ex.Message}");
+        }
+    }
+
+    private void CloseDialog()
+    {
+        isDialogVisible = false; 
+    }
+
+    private async Task DeleteStudent(int age)
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync($"https://localhost:7060/api/Student/{age}");
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadStudents();
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"HTTP Error: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unexpected Error: {ex.Message}");
+        }
+    }
+    private void ViewStudent(int age)
+    {
+        Navigation.NavigateTo($"/Post/{age}");
+    }
+}

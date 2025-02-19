@@ -1,0 +1,119 @@
+﻿@page "/add-employee"
+@inject HttpClient Http
+@using System.Net.Http.Json
+@using System.ComponentModel.DataAnnotations
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Layouts
+@using Microsoft.AspNetCore.Components.Forms
+
+<h3 class="text-center text-primary">Add Employee</h3>
+
+<SfGrid TValue="EmployeeDetail">
+    <GridColumns>
+        <GridColumn Width="50%">
+            <div class="form-container">
+                <EditForm Model="newEmployee" OnValidSubmit="SubmitEmployee">
+                    <DataAnnotationsValidator />
+                    <SfCard>
+                        <CardContent>
+
+                            <div class="mb-3">
+                                <label>Employee ID:</label>
+                                <SfNumericTextBox TValue="int" Placeholder="Enter Employee ID" @bind-Value="newEmployee.EmployeeId" CssClass="form-control" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label>Name:</label>
+                                <SfTextBox Placeholder="Enter Name" @bind-Value="newEmployee.Name" CssClass="form-control" />
+                                <ValidationMessage For="@(() => newEmployee.Name)" class="text-danger" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label>Gender:</label><br />
+                                <SfRadioButton Label="Male" Name="gender" Value="Male" @bind-Checked="newEmployee.Gender" />
+                                <SfRadioButton Label="Female" Name="gender" Value="Female" @bind-Checked="newEmployee.Gender" />
+                                <ValidationMessage For="@(() => newEmployee.Gender)" class="text-danger" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label>Department:</label>
+                                <SfDropDownList TValue="string" TItem="string" Placeholder="Select Department" @bind-Value="newEmployee.Department"
+                                    DataSource="@departments" CssClass="form-control">
+                                </SfDropDownList>
+                                <ValidationMessage For="@(() => newEmployee.Department)" class="text-danger" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label>Job Title:</label>
+                                <SfTextBox Placeholder="Enter Job Title" @bind-Value="newEmployee.JobTitle" CssClass="form-control" />
+                                <ValidationMessage For="@(() => newEmployee.JobTitle)" class="text-danger" />
+                            </div>
+                            <div class="mb-3">
+                                <label>Email:</label>
+                                <SfTextBox Placeholder="Enter Email" @bind-Value="newEmployee.Email" CssClass="form-control" />
+                                <ValidationMessage For="@(() => newEmployee.Email)" class="text-danger" />
+                            </div>
+                            <div class="mb-3">
+                                <label>Employment Type:</label>
+                                <SfDropDownList TValue="string" TItem="string" Placeholder="Select Employment Type" @bind-Value="newEmployee.EmploymentType"
+                                                DataSource="@employmentTypes" CssClass="form-control">
+                                </SfDropDownList>
+                                <ValidationMessage For="@(() => newEmployee.EmploymentType)" class="text-danger" />
+                            </div>
+                            <div class="mb-3">
+                                <label>Status:</label>
+                                <SfDropDownList TValue="string" TItem="string" Placeholder="Select Status" @bind-Value="newEmployee.Status"
+                                                DataSource="@statuses" CssClass="form-control">
+                                </SfDropDownList>
+                                <ValidationMessage For="@(() => newEmployee.Status)" class="text-danger" />
+                            </div>
+                            <div class="text-center">
+                                <SfButton CssClass="btn btn-primary" Type="Submit">Submit</SfButton>
+                            </div>
+
+
+                        </CardContent>
+                    </SfCard>
+                </EditForm>
+            </div>
+        </GridColumn>
+    </GridColumns>
+</SfGrid>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <p class="text-success text-center mt-3">@message</p>
+}
+
+@code {
+    private EmployeeDetail newEmployee = new EmployeeDetail();
+    private string message = "";
+
+    private List<string> departments = new List<string> { "HR", "Finance", "IT", "Sales", "Marketing" };
+    private List<string> employmentTypes = new List<string> { "Full-Time", "Part-Time", "Contract" };
+    private List<string> statuses = new List<string> { "Active", "On Leave", "Resigned" };
+
+    private async Task SubmitEmployee()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("https://localhost:7142/api/Employee", newEmployee);
+
+            if (response.IsSuccessStatusCode)
+            {
+                message = "Employee added successfully!";
+                newEmployee = new EmployeeDetail(); // Reset form
+            }
+            else
+            {
+                message = $"Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}";
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Request Failed: {ex.Message}";
+        }
+    }
+} 

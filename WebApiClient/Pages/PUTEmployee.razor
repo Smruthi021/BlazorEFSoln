@@ -1,0 +1,97 @@
+﻿@page "/update/{employeeId:int}"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Update Employee</h3>
+
+@if (employee != null)
+{
+    <EditForm Model="employee" OnValidSubmit="UpdateEmployee">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div>
+            <label>ID:</label>
+            <input class="form-control" value="@employee.EmployeeId" disabled />
+        </div>
+
+        <div>
+            <label>Name:</label>
+            <InputText class="form-control" @bind-Value="employee.Name" />
+        </div>
+
+        <div>
+            <label>Department:</label>
+            <InputText class="form-control" @bind-Value="employee.Department" />
+        </div>
+
+        <div>
+            <label>Job Title:</label>
+            <InputText class="form-control" @bind-Value="employee.JobTitle" />
+        </div>
+
+        <div>
+            <label>Email:</label>
+            <InputText class="form-control" @bind-Value="employee.Email" />
+        </div>
+
+        <div>
+            <label>Employment Type:</label>
+            <InputText class="form-control" @bind-Value="employee.EmploymentType" />
+        </div>
+
+        <div>
+            <label>Status:</label>
+            <InputText class="form-control" @bind-Value="employee.Status" />
+        </div>
+
+        <button type="submit" class="btn btn-success">Update</button>
+        <button type="button" class="btn btn-secondary" @onclick="GoBack">Cancel</button>
+    </EditForm>
+}
+else
+{
+    <p>Loading employee details...</p>
+}
+
+@code {
+    [Parameter] public int EmployeeId { get; set; }
+    private EmployeeDetail employee = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            employee = await Http.GetFromJsonAsync<EmployeeDetail>($"https://localhost:7142/api/Employee/{EmployeeId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading employee details: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateEmployee()
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"https://localhost:7142/api/Employee/{EmployeeId}", employee);
+            if (response.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/employees");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to update employee. Status Code: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating employee: {ex.Message}");
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/employees");
+    }
+}
