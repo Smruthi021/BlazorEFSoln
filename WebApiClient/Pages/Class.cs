@@ -6,8 +6,10 @@
        private string _description;
          private void Hello()
         {
-            Console.WriteLine("Hello World");   
+            Console.WriteLine("Hello World");
+            var a = _description;
         }
+
     }
     
 }
