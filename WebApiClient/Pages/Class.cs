@@ -8,6 +8,7 @@
         {
             Console.WriteLine("Hello World");
             var a = _description;
+            var B = _name;
         }
 
     }
